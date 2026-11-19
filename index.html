@@ -164,10 +164,24 @@ details[open]{box-shadow:var(--shadow)}
 .prompts{display:grid;gap:12px;margin:22px 0}
 .prompt{display:flex;gap:12px;align-items:flex-start;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);border-radius:14px;padding:14px 16px}
 .prompt b{color:#ffd3b4}
+.short{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.24);border-radius:14px;padding:18px 20px;margin:20px 0}
+.short b{color:#ffd3b4;font-family:var(--head);font-size:1.15rem}
+.short p{margin:.3em 0 14px;font-size:.96rem;color:#d6e5d6}
 .frame{background:#fff;border-radius:var(--radius);overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3)}
 .frame iframe{width:100%;height:760px;border:0;display:block}
 .frame .fallback{padding:14px 18px;font-size:.93rem;color:var(--muted);border-top:1px solid var(--line);background:var(--cream);color:var(--ink)}
 
+/* Countdown */
+[hidden]{display:none!important}
+.count{background:linear-gradient(135deg,#a8430f,#6f2a07);color:#fff;text-align:center;padding:72px 0}
+.count h2{color:#fff;margin-bottom:.3em}
+.count .lead{color:#ffe3d1;margin:0 auto 28px}
+.timer{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:640px;margin:0 auto 22px}
+.tile{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.22);border-radius:16px;padding:18px 6px}
+.tile b{display:block;font-family:var(--head);font-weight:800;font-size:clamp(2rem,7vw,3.6rem);line-height:1;font-variant-numeric:tabular-nums}
+.tile span{display:block;margin-top:8px;font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:#ffd9bd}
+.count-note{font-size:.92rem;color:#ffd9bd;max-width:52ch;margin:0 auto}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 footer{background:#12251a;color:#b8cbb9;padding:48px 0;font-size:.92rem}
 footer a{color:#ffc9a3}
 footer .cols{display:grid;grid-template-columns:1.2fr 1fr;gap:30px}
@@ -505,12 +519,36 @@ footer h3{color:#fff;font-size:1.05rem}
           <div class="prompt"><b>03</b><span>Which activities do you want more of?</span></div>
         </div>
         <p><b>It is anonymous.</b> It takes about five minutes. Your answers do not include your name or email.</p>
+        <div class="short">
+          <b>Short on time?</b>
+          <p>Just rank your favorite activities and suggest new ones. It takes about two minutes, with no name or email.</p>
+          <a class="btn ghost" href="https://docs.google.com/forms/d/e/1FAIpQLSf1M6vU8jOFSfBPKEHb4e259IdF9iKvznseld7BPmL4Y1K1vA/viewform" target="_blank" rel="noopener">Take the short version</a>
+        </div>
         <p style="font-size:.95rem">Want to talk with us in person? <a href="https://docs.google.com/forms/d/e/1FAIpQLSfNNNajiB8JJ0vHVm7tn3gPdN5hlNLfRRHhxtpOauuClU-A_A/viewform" target="_blank" rel="noopener">Sign up for a short interview</a>.</p>
       </div>
       <div class="frame reveal">
         <iframe title="Odyssey survey" src="https://docs.google.com/forms/d/e/1FAIpQLSexLTMLm-AEHH9rRK8J4VZ9EKpr6Uh6eNk1FjmZIvXypt_UBg/viewform?embedded=true" loading="lazy">Loading survey...</iframe>
         <div class="fallback">Survey not showing? <a href="https://docs.google.com/forms/d/e/1FAIpQLSexLTMLm-AEHH9rRK8J4VZ9EKpr6Uh6eNk1FjmZIvXypt_UBg/viewform" target="_blank" rel="noopener">Open it in a new tab</a>.</div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- COUNTDOWN -->
+<section id="countdown" class="count">
+  <div class="wrap">
+    <div class="reveal">
+      <div class="eyebrow" style="color:#ffd9bd;justify-content:center">Countdown</div>
+      <h2 id="countTitle">Counting down to September 30.</h2>
+      <p class="lead" id="countSub">Odyssey kicks off on this day.</p>
+      <div class="timer" id="timer" role="timer" aria-live="off">
+        <div class="tile"><b id="cd-d">--</b><span>days</span></div>
+        <div class="tile"><b id="cd-h">--</b><span>hours</span></div>
+        <div class="tile"><b id="cd-m">--</b><span>minutes</span></div>
+        <div class="tile"><b id="cd-s">--</b><span>seconds</span></div>
+      </div>
+      <p class="sr-only" id="cdSr" aria-live="polite"></p>
+      <p class="count-note">The countdown uses last year's start: September 30 at about 8:15 AM. Your advisor confirms the real date and time for your trip.</p>
     </div>
   </div>
 </section>
@@ -629,6 +667,40 @@ footer h3{color:#fff;font-size:1.05rem}
     links.forEach(function(a,i){ a.classList.toggle('on',i===cur); });
   }
   window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+
+  /* Countdown to Sept 30 at 8:15 AM Pacific. Sept 30 is always daylight time (UTC-7), so 15:15 UTC. */
+  /*CD-START*/
+  var TRIP_MS=3*24*60*60*1000;
+  function tripStart(y){ return Date.UTC(y,8,30,15,15,0); }
+  function countdownState(now){
+    var y=new Date(now).getUTCFullYear(), start=tripStart(y);
+    if(now>=start && now<start+TRIP_MS){ return {mode:'now'}; }
+    if(now>=start+TRIP_MS){ start=tripStart(y+1); }
+    var diff=Math.max(0,start-now), s=Math.floor(diff/1000);
+    return {mode:'count', year:new Date(start).getUTCFullYear(),
+      d:Math.floor(s/86400), h:Math.floor(s%86400/3600), m:Math.floor(s%3600/60), s:s%60};
+  }
+  /*CD-END*/
+  var elD=document.getElementById('cd-d'), elH=document.getElementById('cd-h'),
+      elM=document.getElementById('cd-m'), elS=document.getElementById('cd-s'),
+      elTitle=document.getElementById('countTitle'), elSub=document.getElementById('countSub'),
+      elSr=document.getElementById('cdSr'), elTimer=document.getElementById('timer'), lastDays=null;
+  function two(n){ return n<10?'0'+n:''+n; }
+  function tick(){
+    var st=countdownState(Date.now());
+    if(st.mode==='now'){
+      elTimer.hidden=true;
+      elTitle.textContent='Odyssey is happening now.';
+      elSub.textContent='If you are on the trip, have a great time out there.';
+      return;
+    }
+    elTimer.hidden=false;
+    elTitle.textContent='Counting down to September 30.';
+    elSub.textContent='Last year’s trip started on September 30. Yours may differ, so check with your advisor.';
+    elD.textContent=st.d; elH.textContent=two(st.h); elM.textContent=two(st.m); elS.textContent=two(st.s);
+    if(st.d!==lastDays){ lastDays=st.d; elSr.textContent=st.d+(st.d===1?' day':' days')+' until September 30, '+st.year+'.'; }
+  }
+  tick(); setInterval(tick,1000);
 })();
 </script>
 </body>
